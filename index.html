@@ -1,5 +1,7 @@
 <html>
 
+<script src="https://d3js.org/d3.v5.min.js"></script>
+
 <head>
     <style>
         body {
@@ -45,6 +47,61 @@
 </head>
 
 <body>
+
+    <script>
+        // Global variable to store data
+        let store = {}
+
+        function loadData() {
+            let promise = d3.csv("routes.csv")
+            //TODO 1: Add the code to load the CSV file named "routes.csv" | 1 Line
+            return promise.then(routes => {
+                store.routes = routes;//TODO 2: Save the routes into our store variable;
+                return store;
+            })
+        }
+
+        function groupByAirline(data) {
+            //Iterate over each route, producing a dictionary where the keys is are the ailines ids and the values are the information of the airline.
+            let result = data.reduce((result, d) => {
+                let currentData = result[d.AirlineID] || {
+                    "AirlineID": d.AirlineID,
+                    "AirlineName": d.AirlineName,
+                    "Count": 1
+                }
+
+                if (!result[d.AirlineID]) {
+                    // If airline not in dictionary yet, then initialise
+                    result[d.AirlineID] = currentData;
+                } else {
+                    // If airline is already in dictionary, then increment the number of routes
+                    currentData.Count += 1;
+                }
+
+                return result;
+            }, {})
+
+            //We use this to convert the dictionary produced by the code above, into a list, that will make it easier to create the visualization.
+            result = Object.keys(result).map(key => result[key])
+            result = result.sort((a,b) => {
+                return d3.descending(a.Count, b.Count)
+            }) //TODO: Sort the data in descending order of count.
+
+            return result
+        }
+
+        function showData() {
+          //Get the routes from our store variable
+          let routes = store.routes
+          // Compute the number of routes per airline.
+          let airlines = groupByAirline(store.routes);
+          console.log(airlines)
+        }
+
+        loadData().then(showData);
+
+    </script>
+
     <h1>Airlines Routes</h1>
     <div class="mainView">
         <div class="mainItem">
