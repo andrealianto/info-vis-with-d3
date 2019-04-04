@@ -53,10 +53,12 @@
         let store = {}
 
         function loadData() {
-            let promise = d3.csv("routes.csv")
-            //TODO 1: Add the code to load the CSV file named "routes.csv" | 1 Line
-            return promise.then(routes => {
-                store.routes = routes;//TODO 2: Save the routes into our store variable;
+            return Promise.all([
+                d3.csv("routes.csv"),
+                d3.json("countries.geo.json")
+            ]).then(datasets => {
+                store.routes = datasets[0];
+                store.geoJSON = datasets[1];
                 return store;
             })
         }
@@ -183,6 +185,60 @@
             drawAxesAirlinesChart(airlines, scales, config);
         }
 
+        // Set and return information about the size of the map
+        function getMapConfig(){
+            let width = 600;
+            let height = 400;
+
+            //TODO: select the svg with id Map
+            let container = d3.select("#Map")
+            //TODO: set the width and height of the container to be equal to the width and height variables
+            container.attr("width", width)
+                     .attr("height", height)
+
+            return {width, height, container}
+        }
+
+
+        // Choose map projection
+        function getMapProjection(config){
+            let {width, height} = config;
+
+            //TODO: Create a projection of type Mercator
+            let projection = d3.geoMercator()
+
+            projection.scale(97)
+                      .translate([width / 2, height / 2 + 20])
+
+            store.mapProjection = projection;
+            return projection;
+        }
+
+
+        // Draw the map
+        // Parameters: container, the features of the GeoJSON file, a.k.a. the countries we want to draw, and the projection to use
+        function drawBaseMap(container, countries, projection){
+            //TODO: create a geoPath generator and set its projection to be the projection passed as parameter
+            let path = d3.geoPath()
+                         .projection(projection)
+
+            container.selectAll("path")
+                     .data(countries)
+                     .enter()
+                     .append("path")
+                     .attr("d", d => path(d) )
+                     .attr("stroke", "#ccc")
+                     .attr("fill", "#eee")
+        }
+
+
+        // Call map functions in the right sequence
+        function drawMap(geoJson){
+            let config = getMapConfig();
+            let projection = getMapProjection(config);
+            drawBaseMap(config.container, geoJson.features, projection)
+        }
+
 
 
         function showData() {
@@ -194,6 +250,7 @@
 
           // Draw airlines barchart
           drawAirlinesChart(airlines);
+          drawMap(store.geoJSON)
         }
 
         loadData().then(showData);
