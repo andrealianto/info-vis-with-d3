@@ -63,6 +63,8 @@
             })
         }
 
+        /************************************************************/
+
         function groupByAirline(data) {
             //Iterate over each route, producing a dictionary where the keys is are the ailines ids and the values are the information of the airline.
             let result = data.reduce((result, d) => {
@@ -91,6 +93,8 @@
 
             return result
         }
+
+        /************************************************************/
 
         function getAirlinesChartConfig() {
             let width = 350;
@@ -185,6 +189,8 @@
             drawAxesAirlinesChart(airlines, scales, config);
         }
 
+        /************************************************************/
+
         // Set and return information about the size of the map
         function getMapConfig(){
             let width = 600;
@@ -239,18 +245,97 @@
             drawBaseMap(config.container, geoJson.features, projection)
         }
 
+        /************************************************************/
 
+        // Group routes by airport
+        function groupByAirport(data){
+            // We use reduce to transform a list into an object where each key points to an airport. This way makes it easy to check if it's the first time we are seeing an airport.
+
+            let result = data.reduce((result, d) =>{
+                // The || sign in the line below means that in case the first option is anything that Javascript consider false (this includes undefined, null, and 0), the second option will be used. Here if result[d.DestAirportID] is false, it means that this is the first time we are seeing the airport, so we will create a new one (second part after ||)
+
+                let currentDest = result[d.DestAirportID] || {
+                    "AirportID": d.DestAirportID,
+                    "Airport": d.DestAirport,
+                    "Latitude": +d.DestLatitude,
+                    "Longitude": +d.DestLongitude,
+                    "City": d.DestCity,
+                    "Country": d.DestCountry,
+                    "Count": 0
+                }
+                currentDest.Count += 1
+                result[d.DestAirportID] = currentDest
+
+                // After doing for the destination airport, we also update the airport the airplane is departing from
+
+                let currentSource = result[d.SourceAirportID] || {
+                    "AirportID": d.SourceAirportID,
+                    "Airport": d.SourceAirport,
+                    "Latitude": +d.SourceLatitude,
+                    "Longitude": +d.SourceLongitude,
+                    "City": d.SourceCity,
+                    "Country": d.SourceCountry,
+                    "Count": 0
+                }
+                currentSource.Count += 1
+                result[d.SourceAirportID] = currentSource
+
+                return result
+
+            }, {})
+
+            // We map the keys to the actual airports, this is a way to transform the object we got in the previous step into a list
+            result = Object.keys(result).map(key => result[key])
+            return result
+        }
+
+
+        // Draw airports in the map
+        // Parameters: airports
+        function drawAirports(airports){
+            let config = getMapConfig(); //get the config
+            let projection = getMapProjection(config) // get the projection
+            let container = config.container; // get the container
+
+            let circles = container.selectAll("circle");
+
+            //TODO: bind the airports to the circles using the .data method
+            //TODO: for each new airport (hint: .enter)
+            //      - Set the radius to 1
+            //      - Set the x and y position of the circle using the projection to convert longitude and latitude to x and y position
+
+            //      - Set the fill color of the circle to "#2a5599"
+
+            circles.data(airports)
+                   .enter()
+                   .append("circle")
+                   .attr("r", 1)
+                   .attr("cx", d => projection([+d.Longitude, +d.Latitude])[0])
+                   .attr("cy", d => projection([+d.Longitude, +d.Latitude])[1])
+                   .attr("fill", "#2a5599")
+        }
+
+
+        /************************************************************/
 
         function showData() {
           // Get the routes from our store variable
           let routes = store.routes;
+
           // Compute the number of routes per airline.
           let airlines = groupByAirline(store.routes);
           console.log(airlines);
 
           // Draw airlines barchart
           drawAirlinesChart(airlines);
-          drawMap(store.geoJSON)
+
+          // Draw base map
+          drawMap(store.geoJSON);
+
+          // Group routes by airport
+          let airports = groupByAirport(store.routes);
+          drawAirports(airports)
+
         }
 
         loadData().then(showData);
