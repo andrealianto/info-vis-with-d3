@@ -6,7 +6,6 @@
     <style>
         body {
             font-family: Helvetica, Arial, sans-serif;
-
         }
 
         h1 {
@@ -32,10 +31,12 @@
 
         /* TODO 3
          - Use the "display flex" feature from to show the items from class `mainView` side by side
-         1-3 lines of cide
+         1-3 lines of code
         */
         .mainView{
             display: flex;
+            flex-flow: row wrap;
+            justify-content: space-around;
         }
 
         .mainItem{
@@ -97,7 +98,8 @@
         /************************************************************/
 
         function getAirlinesChartConfig() {
-            let width = 350;
+            let box = d3.select('#AirlinesBox').node();
+            let width = box.getBoundingClientRect().width;
             let height = 400;
             let margin = {
                 top: 10,
@@ -398,11 +400,11 @@
 
     <h1>Airlines Routes</h1>
     <div class="mainView">
-        <div class="mainItem">
+        <div class="mainItem" id="AirlinesBox">
             <h2>Airlines</h2>
             <svg id="AirlinesChart"></svg>
         </div>
-        <div class="mainItem">
+        <div class="mainItem" id="AirportsBox">
             <h2>Airports</h2>
             <svg id="Map"></svg>
         </div>
