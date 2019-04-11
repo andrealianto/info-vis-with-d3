@@ -315,6 +315,41 @@
                    .attr("fill", "#2a5599")
         }
 
+        /************************************************************/
+
+        function drawRoutes(airlineID){
+          //TODO: get the routes from store
+          let routes = store.routes;
+          //TODO: get the projection from store
+          let projection = store.mapProjection;
+          //TODO: select the svg with id "Map" (our map container)
+          let container = d3.select("#Map");
+          //TODO: filter the routes to keep only the routes which AirlineID is equal to the parameter airlineID received by the function
+          let selectedRoutes = routes.filter(d => {
+            return d.AirlineID === airlineID
+          })
+
+          let bindedData = container.selectAll("line")
+          //Below, the second parameter tells D3 what to use to identify the routes, this helps D3 to correctly find which routes have been added or removed.
+                                    .data(selectedRoutes, d => d.ID)
+          //TODO: Use the .enter selector to append a line for each new route
+                                    .enter()
+                                    .append("line")
+          //TODO: For each line set the start of the line (x1 and y1) to be the position of the source airport (SourceLongitude and SourceLatitude) Hint: you can use the projection to convert longitude and latitude to x and y.
+                                    .attr("x1", d => projection([+d.SourceLongitude, +d.SourceLatitude])[0])
+                                    .attr("y1", d => projection([+d.SourceLongitude, +d.SourceLatitude])[1])
+          //TODO: for each line set the end of the line (x2 and y2) to be the position of the destination airport (DestLongitude and DestLatitude)
+                                   .attr("x2", d => projection([+d.DestLongitude, +d.DestLatitude])[0])
+                                   .attr("y2", d => projection([+d.DestLongitude, +d.DestLatitude])[1])
+          //TODO: set the color of the stroke of the line to #992a2a
+                                   .attr("stroke", "#992a2a")
+          //TODO: set the opacity to 0.1
+                                   .attr("opacity", 0.1)
+          //TODO: use exit function over bindedData to remove any routes that does not satisfy the filter
+                                   .exit()
+
+        }
+
 
         /************************************************************/
 
@@ -335,6 +370,7 @@
           // Group routes by airport
           let airports = groupByAirport(store.routes);
           drawAirports(airports)
+          drawRoutes("24")
 
         }
 
